@@ -1,0 +1,119 @@
+#NoEnv  ; Recommended for performance and compatibility with future AutoHotkey releases.
+; #Warn  ; Enable warnings to assist with detecting common errors.
+SendMode Input  ; Recommended for new scripts due to its superior speed and reliability.
+SetWorkingDir %A_ScriptDir%  ; Ensures a consistent starting directory.
+
+#SingleInstance force ;running program will overwrite old versions without pop up
+
+;AHK Hot Key Program
+;Created by: Matthew Avery Braun Soule
+
+
+;CTRL Escape error script
+;Anything goes wrong, press ALT escape to stop the script
+
+ALT & Escape::
+BlockInput, MouseMoveOff
+MsgBox, Exiting AHK Script
+ExitApp
+Return
+
+
+;ALT + D to locate part drawings in a numarical based part system
+ALT & D::
+
+	;Declarations
+	StartTime :=
+	ElapsedTime := 
+	RepositoryPath :=
+	
+	;Main
+	
+	openConfig(StartTime)
+	
+	interpretAndLocatePart()
+	
+	closeConfig(StartTime)
+	
+	
+;Functions
+
+	openConfig(ByRef StartTime)
+	{
+		;Measure execution time
+		StartTime := A_TickCount
+		
+		SetTitleMatchMode, 2 ;matching configuration for whole script
+	}
+	
+	interpretAndLocatePart()
+	{	
+		;Assign clipboard value to variable for script stability
+			clipboard := clipboard
+		
+		;Handle empty clipboard case
+			If clipboard = ""
+			{
+				MsgBox, Clipboard is empty, please select part number(s) to locate and copy to your clipboard!
+			}
+			ClipWait ;wait for clipboard to contain text
+			;MsgBox, Clipboard contains: %clipboard%
+		
+		;Split into individual part number strings
+		partNum_array := StrSplit( clipboard, ["&",":",";",".",",","`n", A_Tab, A_Space], "`r")		;split by newlines, tabs, spaces, comma's, ignore carriage returns (enter is `n`r but all enters become `n since `r is ignored... remaining `n are the split points and they are the delimiter)
+	
+		;Delete blank elements
+			Loop % partNum_array.MaxIndex() ;percent sign ensures compiler evaluates the number of elements in partNum_array
+			{
+				If partNum_array[a_index] = ""
+				{
+					partNum_array.remove(a_index)
+				}
+			}
+	
+		;Activate window and search each part
+		Loop % partNum_array.MaxIndex() ;percent sign ensures compiler evaluates the number of elements in partNum_array
+		{
+			explorerPath = U:\Engineering\Design\DWG
+			Run, explore %explorerPath%
+			WinWaitActive, DWG
+			
+			partNum := partNum_array[a_index]
+			
+			SendInput %partNum%
+			Sleep 500
+			SendInput {Enter}
+			Sleep 500
+			SendInput %partNum%
+		}
+	}
+	
+		closeConfig(ByRef StartTime)
+	{
+		;Measure execution time
+		ElapsedTime := (A_TickCount - StartTime)/1000
+		Sleep, 10
+		;MsgBox,  Files successfully opened after %ElapsedTime% seconds.
+		return
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
